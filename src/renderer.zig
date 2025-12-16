@@ -34,16 +34,28 @@ pub const Renderer = struct {
     ) void {
         const screen_start = self.toScreen(start);
         const screen_end = self.toScreen(end);
-        const scaled_thickness = thickness * self.ssaaScale();
 
-        rl.drawLineEx(screen_start, screen_end, scaled_thickness, color);
+        rl.drawLineEx(screen_start, screen_end, thickness, color);
     }
 
     /// Draw a circle at normalized coordinates (0-1)
     pub fn drawFilledCircle(self: Self, pos: types.Vec2, radius: f32, color: types.Color) void {
         const screen_pos = self.toScreen(pos);
-        const scaled_radius = radius * self.ssaaScale();
-        rl.drawCircleV(screen_pos, scaled_radius, color);
+        rl.drawCircleV(screen_pos, radius, color);
+    }
+    pub fn drawFilledCircleRT(self: Self, pos_rt: types.Vec2, radius_rt: f32, color: types.Color) void {
+        const vw = @as(f32, @floatFromInt(self.viewport.virtual_width * self.viewport.ssaa_scale));
+        const vh = @as(f32, @floatFromInt(self.viewport.virtual_height * self.viewport.ssaa_scale));
+        const n = types.Vec2{ .x = pos_rt.x / vw, .y = pos_rt.y / vh };
+        self.drawFilledCircle(n, radius_rt, color);
+    }
+
+    pub fn drawLineRT(self: Self, a_rt: types.Vec2, b_rt: types.Vec2, thickness_rt: f32, color: types.Color) void {
+        const vw = @as(f32, @floatFromInt(self.viewport.virtual_width * self.viewport.ssaa_scale));
+        const vh = @as(f32, @floatFromInt(self.viewport.virtual_height * self.viewport.ssaa_scale));
+        const a_n = types.Vec2{ .x = a_rt.x / vw, .y = a_rt.y / vh };
+        const b_n = types.Vec2{ .x = b_rt.x / vw, .y = b_rt.y / vh };
+        self.drawLine(a_n, b_n, thickness_rt, color);
     }
 
     /// Draw a circle outline at normalized coordinates (0-1) with thickness
@@ -55,14 +67,12 @@ pub const Renderer = struct {
         color: types.Color,
     ) void {
         const screen_pos = self.toScreen(pos);
-        const scaled_radius = radius * self.ssaaScale();
-        const scaled_thickness = thickness * self.ssaaScale();
-        const segments: i32 = @intFromFloat(@max(12, @min(64, scaled_radius / 2.0)));
+        const segments: i32 = @intFromFloat(@max(12, @min(64, radius / 2.0)));
 
         rl.drawRing(
             screen_pos,
-            scaled_radius - scaled_thickness / 2.0,
-            scaled_radius + scaled_thickness / 2.0,
+            radius - thickness / 2.0,
+            radius + thickness / 2.0,
             0.0,
             360.0,
             segments,
