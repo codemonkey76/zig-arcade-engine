@@ -6,13 +6,13 @@ const Input = @import("input.zig").Input;
 const AssetManager = @import("assets.zig").AssetManager;
 const Window = @import("window.zig").Window;
 const Viewport = @import("viewport.zig").Viewport;
-const Gfx = @import("gfx.zig").Gfx;
+const Renderer = @import("renderer.zig").Renderer;
 
 pub const Context = struct {
     allocator: std.mem.Allocator,
 
     input: Input,
-    gfx: Gfx,
+    renderer: Renderer,
     assets: AssetManager,
     window: Window,
     viewport: Viewport,
@@ -27,11 +27,12 @@ pub const Context = struct {
             cfg.virtual_height,
             cfg.ssaa_scale,
         );
+        const renderer = Renderer.init(viewport);
         viewport.updateDestRect(cfg.width, cfg.height);
         return .{
             .allocator = allocator,
             .input = Input.init(),
-            .gfx = Gfx{},
+            .renderer = renderer,
             .assets = try AssetManager.init(allocator, cfg.asset_root),
             .window = window,
             .viewport = viewport,
