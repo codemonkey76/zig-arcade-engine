@@ -127,4 +127,26 @@ pub const Viewport = struct {
 
         return rl.Vector2{ .x = virt_x, .y = virt_y };
     }
+
+    /// Convert normalized coordinates (0-1) to screen coordinates
+    pub fn normalizedToScreen(self: *const Self, normalized: rl.Vector2) rl.Vector2 {
+        const vw = @as(f32, @floatFromInt(self.virtual_width * self.ssaa_scale));
+        const vh = @as(f32, @floatFromInt(self.virtual_height * self.ssaa_scale));
+
+        return .{
+            .x = normalized.x * vw,
+            .y = normalized.y * vh,
+        };
+    }
+
+    /// Convert screen coordinates to normalized coordinates (0-1)
+    pub fn screenToNormalized(self: *const Self, screen: rl.Vector2) rl.Vector2 {
+        const vw = @as(f32, @floatFromInt(self.virtual_width * self.ssaa_scale));
+        const vh = @as(f32, @floatFromInt(self.virtual_height * self.ssaa_scale));
+
+        return .{
+            .x = screen.x / vw,
+            .y = screen.y / vh,
+        };
+    }
 };
