@@ -18,6 +18,8 @@ pub fn run(
     var ctx = try Context.init(allocator, cfg);
     defer ctx.deinit();
 
+    ctx.fixPointers();
+
     try game.init(game_ptr, &ctx);
     defer game.shutdown(game_ptr, &ctx);
 

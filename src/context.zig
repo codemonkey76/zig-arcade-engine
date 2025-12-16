@@ -45,6 +45,10 @@ pub const Context = struct {
         self.window.deinit();
     }
 
+    pub fn fixPointers(self: *Self) void {
+        self.renderer.viewport = &self.viewport;
+    }
+
     pub fn shouldQuit(self: *const Self) bool {
         return self.window.should_close;
     }

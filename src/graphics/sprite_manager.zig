@@ -117,45 +117,61 @@ pub fn RotationSet(comptime SpriteId: type) type {
     return struct {
         layout: SpriteLayout(SpriteId),
         frames: []const RotationFrame(SpriteId),
-        use_horizontal_symmetry: bool,
-        use_vertical_symmetry: bool,
+        allow_horizontal_flip: bool,
+        allow_vertical_flip: bool,
 
         const Self = @This();
 
-        // Get sprite for specific angle (in degrees)
-        // Returns sprite with appropriate flip flags
         pub fn getSpriteForAngle(self: Self, angle_degrees: f32) ?FlippedSprite {
-            var normalized = @mod(angle_degrees, 360.0);
-            var flip = FlipMode{};
+            const normalized = @mod(angle_degrees, 360.0);
 
-            // Handle symmetry
-            if (self.use_horizontal_symmetry) {
-                if (normalized > 180.0) {
-                    normalized = 360.0 - normalized;
-                    flip.horizontal = true;
-                }
-            }
-
-            if (self.use_vertical_symmetry) {
-                if (normalized > 90.0 and normalized < 270.0) {
-                    if (normalized <= 180.0) {
-                        normalized = 180.0 - normalized;
-                    } else {
-                        normalized = normalized - 180.0;
-                    }
-                    flip.vertical = true;
-                }
-            }
-
-            // Find closest frame
-            var closest_idx: usize = 0;
+            var best_flip = FlipMode{};
             var min_diff: f32 = 360.0;
+            var closest_idx: usize = 0;
 
+            // Check all frames with all possible flip combinations
             for (self.frames, 0..) |frame, i| {
-                const diff = @abs(angleDifference(normalized, frame.angle));
-                if (diff < min_diff) {
-                    min_diff = diff;
-                    closest_idx = i;
+                // Check: no flip
+                {
+                    const diff = @abs(angleDifference(normalized, frame.angle));
+                    if (diff < min_diff) {
+                        min_diff = diff;
+                        closest_idx = i;
+                        best_flip = FlipMode{};
+                    }
+                }
+
+                // Check: horizontal flip (sprite at angle X represents 180-X when flipped)
+                if (self.allow_horizontal_flip) {
+                    const flipped_angle = @mod(180.0 - frame.angle, 360.0);
+                    const diff = @abs(angleDifference(normalized, flipped_angle));
+                    if (diff < min_diff) {
+                        min_diff = diff;
+                        closest_idx = i;
+                        best_flip = FlipMode{ .horizontal = true };
+                    }
+                }
+
+                // Check: vertical flip (sprite at angle X represents 360-X when flipped)
+                if (self.allow_vertical_flip) {
+                    const flipped_angle = @mod(360.0 - frame.angle, 360.0);
+                    const diff = @abs(angleDifference(normalized, flipped_angle));
+                    if (diff < min_diff) {
+                        min_diff = diff;
+                        closest_idx = i;
+                        best_flip = FlipMode{ .vertical = true };
+                    }
+                }
+
+                // Check: both flips
+                if (self.allow_horizontal_flip and self.allow_vertical_flip) {
+                    const flipped_angle = @mod(180.0 + frame.angle, 360.0);
+                    const diff = @abs(angleDifference(normalized, flipped_angle));
+                    if (diff < min_diff) {
+                        min_diff = diff;
+                        closest_idx = i;
+                        best_flip = FlipMode{ .horizontal = true, .vertical = true };
+                    }
                 }
             }
 
@@ -163,10 +179,9 @@ pub fn RotationSet(comptime SpriteId: type) type {
             if (self.layout.getSprite(frame.id)) |sprite| {
                 return .{
                     .sprite = sprite,
-                    .flip = flip,
+                    .flip = best_flip,
                 };
             }
-
             return null;
         }
 

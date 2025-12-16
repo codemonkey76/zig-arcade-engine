@@ -3,6 +3,22 @@ const Viewport = @import("viewport.zig").Viewport;
 const types = @import("root.zig").types;
 const sprite_manager = @import("graphics/sprite_manager.zig");
 
+/// Sprite anchor/origin point (normalized 0-1 within sprite bounds)
+pub const Anchor = struct {
+    x: f32,
+    y: f32,
+
+    pub const top_left = Anchor{ .x = 0.0, .y = 0.0 };
+    pub const top_center = Anchor{ .x = 0.5, .y = 0.0 };
+    pub const top_right = Anchor{ .x = 1.0, .y = 0.0 };
+    pub const center_left = Anchor{ .x = 0.0, .y = 0.5 };
+    pub const center = Anchor{ .x = 0.5, .y = 0.5 };
+    pub const center_right = Anchor{ .x = 1.0, .y = 0.5 };
+    pub const bottom_left = Anchor{ .x = 0.0, .y = 1.0 };
+    pub const bottom_center = Anchor{ .x = 0.5, .y = 1.0 };
+    pub const bottom_right = Anchor{ .x = 1.0, .y = 1.0 };
+};
+
 pub const Renderer = struct {
     viewport: *const Viewport,
 
@@ -22,6 +38,30 @@ pub const Renderer = struct {
     /// Get SSAA scale factor
     fn ssaaScale(self: Self) f32 {
         return @as(f32, @floatFromInt(self.viewport.ssaa_scale));
+    }
+
+    /// Get sprite width in normalized coordinates (0-1)
+    pub fn spriteWidth(self: Self, sprite: sprite_manager.Sprite) f32 {
+        const vw = @as(f32, @floatFromInt(self.viewport.virtual_width));
+        return sprite.getWidth() / vw;
+    }
+
+    /// Get sprite height in normalized coordinates (0-1)
+    pub fn spriteHeight(self: Self, sprite: sprite_manager.Sprite) f32 {
+        const vh = @as(f32, @floatFromInt(self.viewport.virtual_height));
+        return sprite.getHeight() / vh;
+    }
+
+    /// Get flipped sprite width in normalized coordinates (0-1)
+    pub fn flippedSpriteWidth(self: Self, flipped: sprite_manager.FlippedSprite) f32 {
+        const vw = @as(f32, @floatFromInt(self.viewport.virtual_width));
+        return flipped.sprite.getWidth() / vw;
+    }
+
+    /// Get flipped sprite height in normalized coordinates (0-1)
+    pub fn flippedSpriteHeight(self: Self, flipped: sprite_manager.FlippedSprite) f32 {
+        const vh = @as(f32, @floatFromInt(self.viewport.virtual_height));
+        return flipped.sprite.getHeight() / vh;
     }
 
     /// Draw a line at normalized coordinates (0-1) with thickness
@@ -80,37 +120,65 @@ pub const Renderer = struct {
         );
     }
 
-    /// Draw a sprite at normalized coordinates (0-1)
+    /// Draw a sprite at normalized coordinates (0-1) with center anchor
     pub fn drawSprite(
         self: Self,
         sprite: sprite_manager.Sprite,
         normalized_pos: types.Vec2,
     ) void {
+        self.drawSpriteAnchored(sprite, normalized_pos, Anchor.center);
+    }
+
+    /// Draw a sprite at normalized coordinates (0-1) with custom anchor
+    pub fn drawSpriteAnchored(
+        self: Self,
+        sprite: sprite_manager.Sprite,
+        normalized_pos: types.Vec2,
+        anchor: Anchor,
+    ) void {
         const screen_pos = self.toScreen(normalized_pos);
         const ssaa = self.ssaaScale();
+
+        const width = sprite.getWidth() * ssaa;
+        const height = sprite.getHeight() * ssaa;
 
         const dest = rl.Rectangle{
             .x = screen_pos.x,
             .y = screen_pos.y,
-            .width = sprite.getWidth() * ssaa,
-            .height = sprite.getHeight() * ssaa,
+            .width = width,
+            .height = height,
+        };
+
+        const origin = rl.Vector2{
+            .x = width * anchor.x,
+            .y = height * anchor.y,
         };
 
         rl.drawTexturePro(
             sprite.texture.handle,
             sprite.getSourceRect(),
             dest,
-            .{ .x = 0, .y = 0 },
+            origin,
             0.0,
             rl.Color.white,
         );
     }
 
-    /// Draw a flipped sprite at normalized coordinates (0-1)
+    /// Draw a flipped sprite at normalized coordinates (0-1) with center anchor
     pub fn drawFlippedSprite(
         self: Self,
         flipped: sprite_manager.FlippedSprite,
         normalized_pos: types.Vec2,
+    ) void {
+        self.drawFlippedSpriteAnchored(flipped, normalized_pos, Anchor.center);
+    }
+
+    /// Draw a flipped sprite at normalized coordinates (0-1) with custom anchor
+    pub fn drawFlippedSpriteAnchored(
+        self: Self,
+        flipped: sprite_manager.FlippedSprite,
+        normalized_pos: types.Vec2,
+        anchor: Anchor,
     ) void {
         const screen_pos = self.toScreen(normalized_pos);
         const ssaa = self.ssaaScale();
@@ -119,18 +187,26 @@ pub const Renderer = struct {
         if (flipped.flip.horizontal) source.width = -source.width;
         if (flipped.flip.vertical) source.height = -source.height;
 
+        const width = flipped.sprite.getWidth() * ssaa;
+        const height = flipped.sprite.getHeight() * ssaa;
+
         const dest = rl.Rectangle{
             .x = screen_pos.x,
             .y = screen_pos.y,
-            .width = flipped.sprite.getWidth() * ssaa,
-            .height = flipped.sprite.getHeight() * ssaa,
+            .width = width,
+            .height = height,
+        };
+
+        const origin = rl.Vector2{
+            .x = width * anchor.x,
+            .y = height * anchor.y,
         };
 
         rl.drawTexturePro(
             flipped.sprite.texture.handle,
             source,
             dest,
-            .{ .x = 0, .y = 0 },
+            origin,
             0.0,
             rl.Color.white,
         );
