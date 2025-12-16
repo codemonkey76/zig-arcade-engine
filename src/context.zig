@@ -27,7 +27,7 @@ pub const Context = struct {
             cfg.virtual_height,
             cfg.ssaa_scale,
         );
-        const renderer = Renderer.init(viewport);
+        const renderer = Renderer.init(&viewport);
         viewport.updateDestRect(cfg.width, cfg.height);
         return .{
             .allocator = allocator,
