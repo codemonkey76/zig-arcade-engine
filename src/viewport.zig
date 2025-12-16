@@ -130,8 +130,8 @@ pub const Viewport = struct {
 
     /// Convert normalized coordinates (0-1) to screen coordinates
     pub fn normalizedToScreen(self: *const Self, normalized: rl.Vector2) rl.Vector2 {
-        const vw = @as(f32, @floatFromInt(self.virtual_width * self.ssaa_scale));
-        const vh = @as(f32, @floatFromInt(self.virtual_height * self.ssaa_scale));
+        const vw = @as(f32, @floatFromInt(self.virtual_width)) * @as(f32, @floatFromInt(self.ssaa_scale));
+        const vh = @as(f32, @floatFromInt(self.virtual_height)) * @as(f32, @floatFromInt(self.ssaa_scale));
 
         return .{
             .x = normalized.x * vw,
