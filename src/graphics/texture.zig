@@ -16,9 +16,11 @@ pub const Texture = struct {
 
     /// Load a texture from a file
     pub fn loadFromFile(
+        allocator: std.mem.Allocator,
         path: []const u8,
     ) !Self {
-        const texture = try rl.loadTexture(path);
+        const path_z = try allocator.dupeZ(u8, path);
+        const texture = try rl.loadTexture(path_z);
         if (texture.id == 0) {
             return error.TextureLoadFailed;
         }

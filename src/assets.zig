@@ -34,7 +34,7 @@ pub const AssetManager = struct {
         const full_path = try std.fs.path.join(self.allocator, &.{ self.asset_root, filename });
         defer self.allocator.free(full_path);
 
-        const texture = try Texture.loadFromFile(full_path);
+        const texture = try Texture.loadFromFile(self.allocator, full_path);
 
         const key = try self.allocator.dupe(u8, filename);
         errdefer self.allocator.free(key);
