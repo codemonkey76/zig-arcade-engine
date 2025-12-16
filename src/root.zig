@@ -11,6 +11,9 @@ pub const types = struct {
     pub const TraceLogLevel = rl.TraceLogLevel;
 };
 pub const graphics = struct {
-    pub const SpriteLayoutBuilder = @import("graphics/sprite_manager.zig").SpriteLayoutBuilder;
+    const sm = @import("graphics/sprite_manager.zig");
+    pub const SpriteLayoutBuilder = sm.SpriteLayoutBuilder;
+    pub const RotationSet = sm.RotationSet;
+    pub const RotationFrame = sm.RotationFrame;
 };
 pub const run = @import("run.zig").run;
