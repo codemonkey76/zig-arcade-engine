@@ -3,7 +3,7 @@ const rl = @import("raylib");
 pub const Config = @import("config.zig").Config;
 pub const Context = @import("context.zig").Context;
 pub const GameVTable = @import("run.zig").GameVTable;
-pub const Gfx = @import("gfx.zig").Gfx;
+pub const Renderer = @import("renderer.zig").Renderer;
 
 pub const types = struct {
     pub const Vec2 = rl.Vector2;
