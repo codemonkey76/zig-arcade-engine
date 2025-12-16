@@ -20,6 +20,8 @@ pub const Texture = struct {
         path: []const u8,
     ) !Self {
         const path_z = try allocator.dupeZ(u8, path);
+        defer allocator.free(path_z);
+
         const texture = try rl.loadTexture(path_z);
         if (texture.id == 0) {
             return error.TextureLoadFailed;
