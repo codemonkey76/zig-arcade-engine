@@ -9,6 +9,7 @@ pub const Window = struct {
     const Self = @This();
 
     pub fn init(cfg: Config) Self {
+        rl.setTraceLogLevel(cfg.log_level);
         rl.initWindow(
             @intCast(cfg.width),
             @intCast(cfg.height),

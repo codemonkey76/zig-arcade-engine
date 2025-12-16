@@ -8,5 +8,6 @@ pub const types = struct {
     pub const Vec2 = rl.Vector2;
     pub const Color = rl.Color;
     pub const Rect = rl.Rectangle;
+    pub const TraceLogLevel = rl.TraceLogLevel;
 };
 pub const run = @import("run.zig").run;

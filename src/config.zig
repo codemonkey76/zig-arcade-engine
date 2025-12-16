@@ -1,8 +1,11 @@
+const rl = @import("raylib");
+
 pub const Config = struct {
     title: [:0]const u8 = "Game",
     width: u32 = 1280,
     height: u32 = 720,
     target_fps: u32 = 60,
+    log_level: rl.TraceLogLevel = .inf,
 
     // Virtual resolution for game viewport
     virtual_width: u32 = 224,
