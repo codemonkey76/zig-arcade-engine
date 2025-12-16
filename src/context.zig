@@ -20,23 +20,23 @@ pub const Context = struct {
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
-        const window = Window.init(cfg);
-
-        var viewport = try Viewport.init(
-            cfg.virtual_width,
-            cfg.virtual_height,
-            cfg.ssaa_scale,
-        );
-        const renderer = Renderer.init(&viewport);
-        viewport.updateDestRect(cfg.width, cfg.height);
-        return .{
+        var self: Self = .{
             .allocator = allocator,
             .input = Input.init(),
-            .renderer = renderer,
+            .renderer = undefined,
             .assets = try AssetManager.init(allocator, cfg.asset_root),
-            .window = window,
-            .viewport = viewport,
+            .window = Window.init(cfg),
+            .viewport = try Viewport.init(
+                cfg.virtual_width,
+                cfg.virtual_height,
+                cfg.ssaa_scale,
+            ),
         };
+
+        self.viewport.updateDestRect(cfg.width, cfg.height);
+        self.renderer = Renderer.init(&self.viewport);
+
+        return self;
     }
 
     pub fn deinit(self: *Self) void {
