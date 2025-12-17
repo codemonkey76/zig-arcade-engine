@@ -1,11 +1,14 @@
+// engine/src/root.zig
 const std = @import("std");
 const rl = @import("raylib");
-pub const Config = @import("config.zig").Config;
-pub const Context = @import("context.zig").Context;
-pub const GameVTable = @import("run.zig").GameVTable;
-pub const Renderer = @import("renderer.zig").Renderer;
-pub const Anchor = @import("renderer.zig").Anchor;
 
+// Re-export core types
+pub const Config = @import("core/config.zig").Config;
+pub const Context = @import("core/context.zig").Context;
+pub const GameVTable = @import("core/run.zig").GameVTable;
+pub const run = @import("core/run.zig").run;
+
+// Re-export common types from raylib
 pub const types = struct {
     pub const Vec2 = rl.Vector2;
     pub const Color = rl.Color;
@@ -13,12 +16,18 @@ pub const types = struct {
     pub const TraceLogLevel = rl.TraceLogLevel;
 };
 
-pub const graphics = struct {
-    const sm = @import("graphics/sprite_manager.zig");
-    pub const SpriteLayoutBuilder = sm.SpriteLayoutBuilder;
-    pub const RotationSet = sm.RotationSet;
-    pub const RotationFrame = sm.RotationFrame;
-    pub const SpriteLayout = sm.SpriteLayout;
-};
+// Subsystem modules
+pub const graphics = @import("graphics/mod.zig");
+pub const timeline = @import("timeline/mod.zig");
+pub const math = @import("math/mod.zig");
 
-pub const run = @import("run.zig").run;
+// Convenience re-exports for common types
+pub const Renderer = graphics.Renderer;
+pub const Anchor = graphics.Anchor;
+
+pub const input = @import("input/mod.zig");
+pub const assets = @import("assets/mod.zig");
+
+test {
+    std.testing.refAllDecls(@This());
+}

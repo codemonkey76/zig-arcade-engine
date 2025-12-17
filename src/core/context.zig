@@ -2,11 +2,11 @@ const std = @import("std");
 const rl = @import("raylib");
 
 const Config = @import("config.zig").Config;
-const Input = @import("input.zig").Input;
-const AssetManager = @import("assets.zig").AssetManager;
+const Input = @import("../input/input.zig").Input;
+const AssetManager = @import("../assets/assets.zig").AssetManager;
 const Window = @import("window.zig").Window;
-const Viewport = @import("viewport.zig").Viewport;
-const Renderer = @import("renderer.zig").Renderer;
+const Viewport = @import("../graphics/viewport.zig").Viewport;
+const Renderer = @import("../graphics/renderer.zig").Renderer;
 
 pub const Context = struct {
     allocator: std.mem.Allocator,

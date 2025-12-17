@@ -1,6 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
-const Texture = @import("graphics/texture.zig").Texture;
+const Texture = @import("../graphics/texture.zig").Texture;
 
 pub const AssetManager = struct {
     allocator: std.mem.Allocator,
