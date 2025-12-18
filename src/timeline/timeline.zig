@@ -49,17 +49,23 @@ pub fn Timeline(
             // Process actions
             for (self.actions, 0..) |action, idx| {
                 const action_base = self.getActionBase(action);
+                const was_active = self.active_actions.contains(idx);
+                const is_active = action_base.isActive(self.elapsed_time);
 
-                if (action_base.isActive(self.elapsed_time)) {
+                if (is_active) {
                     // Start action if not already active
-                    if (!self.active_actions.contains(idx)) {
-                        try self.executor.start(action);
+                    if (!was_active) {
+                        try self.executor.start(action, idx);
                         try self.active_actions.put(idx, {});
                     }
 
                     // Update action
                     const progress = action_base.progress(self.elapsed_time);
                     try self.executor.update(action, progress);
+                } else if (was_active) {
+                    // Action just became inactive - stop it
+                    self.executor.stop(action, idx);
+                    _ = self.active_actions.remove(idx);
                 }
             }
 
@@ -150,13 +156,20 @@ test "Timeline basic flow" {
             };
         }
 
-        pub fn start(self: *@This(), action: TestAction) !void {
+        pub fn start(self: *@This(), action: TestAction, action_id: usize) !void {
+            _ = action_id;
             try self.started.append(self.allocator, action.value);
         }
 
         pub fn update(self: *@This(), action: TestAction, progress: f32) !void {
             _ = progress;
             try self.updated.append(self.allocator, action.value);
+        }
+
+        pub fn stop(self: *@This(), action: TestAction, action_id: usize) void {
+            _ = self;
+            _ = action;
+            _ = action_id;
         }
 
         pub fn reset(self: *@This()) !void {
