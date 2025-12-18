@@ -47,6 +47,11 @@ pub const Context = struct {
 
     pub fn fixPointers(self: *Self) void {
         self.renderer.viewport = &self.viewport;
+        self.renderer.text.viewport = &self.viewport;
+    }
+
+    pub fn setFont(self: *Self, font: ?rl.Font) void {
+        self.renderer.text.setFont(font);
     }
 
     pub fn shouldQuit(self: *const Self) bool {

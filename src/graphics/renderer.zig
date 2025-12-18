@@ -1,5 +1,6 @@
 const rl = @import("raylib");
 const Viewport = @import("viewport.zig").Viewport;
+const TextRenderer = @import("text.zig").TextRenderer;
 const types = @import("../root.zig").types;
 const sprite_manager = @import("sprite_manager.zig");
 
@@ -21,12 +22,14 @@ pub const Anchor = struct {
 
 pub const Renderer = struct {
     viewport: *const Viewport,
+    text: TextRenderer,
 
     const Self = @This();
 
     pub fn init(viewport: *const Viewport) Self {
         return .{
             .viewport = viewport,
+            .text = TextRenderer.init(viewport),
         };
     }
 

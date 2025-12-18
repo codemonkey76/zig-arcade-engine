@@ -3,6 +3,7 @@
 pub const Viewport = @import("viewport.zig").Viewport;
 pub const Renderer = @import("renderer.zig").Renderer;
 pub const Anchor = @import("renderer.zig").Anchor;
+pub const TextRenderer = @import("text.zig").TextRenderer;
 pub const Texture = @import("texture.zig").Texture;
 
 const sprite_manager = @import("sprite_manager.zig");
