@@ -4,84 +4,92 @@ const rl = @import("raylib");
 const Config = @import("config.zig").Config;
 const Input = @import("../input/input.zig").Input;
 const AssetManager = @import("../assets/assets.zig").AssetManager;
+const AudioManagerFn = @import("../audio/audio.zig").AudioManager;
 const Window = @import("window.zig").Window;
 const Viewport = @import("../graphics/viewport.zig").Viewport;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
 
-pub const Context = struct {
-    allocator: std.mem.Allocator,
+pub fn Context(comptime SoundId: type) type {
+    const AudioManager = AudioManagerFn(SoundId);
+    
+    return struct {
+        allocator: std.mem.Allocator,
 
-    input: Input,
-    renderer: Renderer,
-    assets: AssetManager,
-    window: Window,
-    viewport: Viewport,
+        input: Input,
+        renderer: Renderer,
+        assets: AssetManager,
+        audio: AudioManager,
+        window: Window,
+        viewport: Viewport,
 
-    const Self = @This();
+        const Self = @This();
 
-    pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
-        var self: Self = .{
-            .allocator = allocator,
-            .input = Input.init(),
-            .renderer = undefined,
-            .assets = try AssetManager.init(allocator, cfg.asset_root),
-            .window = Window.init(cfg),
-            .viewport = try Viewport.init(
-                cfg.virtual_width,
-                cfg.virtual_height,
-                cfg.ssaa_scale,
-            ),
-        };
+        pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
+            var self: Self = .{
+                .allocator = allocator,
+                .input = Input.init(),
+                .renderer = undefined,
+                .assets = try AssetManager.init(allocator, cfg.asset_root),
+                .audio = try AudioManager.init(allocator, cfg.asset_root),
+                .window = Window.init(cfg),
+                .viewport = try Viewport.init(
+                    cfg.virtual_width,
+                    cfg.virtual_height,
+                    cfg.ssaa_scale,
+                ),
+            };
 
-        self.viewport.updateDestRect(cfg.width, cfg.height);
-        self.renderer = Renderer.init(&self.viewport);
+            self.viewport.updateDestRect(cfg.width, cfg.height);
+            self.renderer = Renderer.init(&self.viewport);
 
-        return self;
-    }
-
-    pub fn deinit(self: *Self) void {
-        self.viewport.deinit();
-        self.assets.deinit();
-        self.window.deinit();
-    }
-
-    pub fn fixPointers(self: *Self) void {
-        self.renderer.viewport = &self.viewport;
-        self.renderer.text.viewport = &self.viewport;
-    }
-
-    pub fn setFont(self: *Self, font: ?rl.Font) void {
-        self.renderer.text.setFont(font);
-    }
-
-    pub fn shouldQuit(self: *const Self) bool {
-        return self.window.should_close;
-    }
-
-    pub fn tick(self: *Self) f32 {
-        self.window.update();
-
-        // Update viewport if window was resized
-        const current_width = @as(u32, @intCast(rl.getScreenWidth()));
-        const current_height = @as(u32, @intCast(rl.getScreenHeight()));
-        if (current_width != self.window.width or current_height != self.window.height) {
-            self.window.width = current_width;
-            self.window.height = current_height;
-            self.viewport.updateDestRect(current_width, current_height);
+            return self;
         }
 
-        return rl.getFrameTime();
-    }
+        pub fn deinit(self: *Self) void {
+            self.viewport.deinit();
+            self.assets.deinit();
+            self.audio.deinit();
+            self.window.deinit();
+        }
 
-    pub fn beginFrame(self: *Self) void {
-        rl.beginDrawing();
-        rl.clearBackground(rl.Color.black);
-        self.viewport.beginRender();
-    }
+        pub fn fixPointers(self: *Self) void {
+            self.renderer.viewport = &self.viewport;
+            self.renderer.text.viewport = &self.viewport;
+        }
 
-    pub fn endFrame(self: *Self) void {
-        self.viewport.endRender();
-        self.viewport.draw();
-        rl.endDrawing();
-    }
-};
+        pub fn setFont(self: *Self, font: ?rl.Font) void {
+            self.renderer.text.setFont(font);
+        }
+
+        pub fn shouldQuit(self: *const Self) bool {
+            return self.window.should_close;
+        }
+
+        pub fn tick(self: *Self) f32 {
+            self.window.update();
+
+            // Update viewport if window was resized
+            const current_width = @as(u32, @intCast(rl.getScreenWidth()));
+            const current_height = @as(u32, @intCast(rl.getScreenHeight()));
+            if (current_width != self.window.width or current_height != self.window.height) {
+                self.window.width = current_width;
+                self.window.height = current_height;
+                self.viewport.updateDestRect(current_width, current_height);
+            }
+
+            return rl.getFrameTime();
+        }
+
+        pub fn beginFrame(self: *Self) void {
+            rl.beginDrawing();
+            rl.clearBackground(rl.Color.black);
+            self.viewport.beginRender();
+        }
+
+        pub fn endFrame(self: *Self) void {
+            self.viewport.endRender();
+            self.viewport.draw();
+            rl.endDrawing();
+        }
+    };
+}

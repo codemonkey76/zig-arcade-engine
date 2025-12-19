@@ -1,20 +1,24 @@
 const std = @import("std");
-const Context = @import("context.zig").Context;
+const ContextFn = @import("context.zig").Context;
 const Config = @import("config.zig").Config;
 
-pub const GameVTable = struct {
-    init: *const fn (*anyopaque, *Context) anyerror!void,
-    update: *const fn (*anyopaque, *Context, dt: f32) anyerror!void,
-    draw: *const fn (*anyopaque, *Context) anyerror!void,
-    shutdown: *const fn (*anyopaque, *Context) void,
-};
+pub fn GameVTable(comptime CtxType: type) type {
+    return struct {
+        init: *const fn (*anyopaque, *CtxType) anyerror!void,
+        update: *const fn (*anyopaque, *CtxType, dt: f32) anyerror!void,
+        draw: *const fn (*anyopaque, *CtxType) anyerror!void,
+        shutdown: *const fn (*anyopaque, *CtxType) void,
+    };
+}
 
 pub fn run(
+    comptime SoundId: type,
     allocator: std.mem.Allocator,
     game_ptr: *anyopaque,
-    game: GameVTable,
+    game: GameVTable(ContextFn(SoundId)),
     cfg: Config,
 ) !void {
+    const Context = ContextFn(SoundId);
     var ctx = try Context.init(allocator, cfg);
     defer ctx.deinit();
 
