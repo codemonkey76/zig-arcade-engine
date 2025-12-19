@@ -35,7 +35,7 @@ pub const AssetManager = struct {
         self.fonts.deinit();
     }
 
-    pub fn loadTexture(self: *Self, filename: []const u8) !Texture {
+    pub fn loadTexture(self: *Self, filename: []const u8, transparent_color: ?rl.Color) !Texture {
         if (self.textures.get(filename)) |texture| {
             return texture;
         }
@@ -43,7 +43,7 @@ pub const AssetManager = struct {
         const full_path = try std.fs.path.join(self.allocator, &.{ self.asset_root, filename });
         defer self.allocator.free(full_path);
 
-        const texture = try Texture.loadFromFile(self.allocator, full_path);
+        const texture = try Texture.loadFromFile(self.allocator, full_path, transparent_color);
 
         const key = try self.allocator.dupe(u8, filename);
         errdefer self.allocator.free(key);

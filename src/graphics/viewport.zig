@@ -80,8 +80,6 @@ pub const Viewport = struct {
     pub fn beginRender(self: *Self) void {
         rl.beginTextureMode(self.render_texture);
         rl.clearBackground(rl.Color.black);
-        // DEBUG: draw a red pixel in the render texture every frame
-        rl.drawPixel(0, 0, rl.Color.red);
     }
 
     /// End rendering to the render texture
