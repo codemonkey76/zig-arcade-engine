@@ -1,7 +1,7 @@
 const rl = @import("raylib");
 const Viewport = @import("viewport.zig").Viewport;
 const TextRenderer = @import("text.zig").TextRenderer;
-const types = @import("../root.zig").types;
+const types = @import("../mod.zig").types;
 const sprite_manager = @import("sprite_manager.zig");
 
 /// Sprite anchor/origin point (normalized 0-1 within sprite bounds)

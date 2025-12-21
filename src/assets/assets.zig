@@ -1,99 +1,158 @@
 const std = @import("std");
 const rl = @import("raylib");
 const Texture = @import("../graphics/texture.zig").Texture;
-
-pub const AssetManager = struct {
-    allocator: std.mem.Allocator,
-    asset_root: []const u8,
-    textures: std.StringHashMap(Texture),
-    fonts: std.StringHashMap(rl.Font),
-
-    const Self = @This();
-
-    pub fn init(allocator: std.mem.Allocator, asset_root: []const u8) !Self {
-        return .{
-            .allocator = allocator,
-            .asset_root = asset_root,
-            .textures = std.StringHashMap(Texture).init(allocator),
-            .fonts = std.StringHashMap(rl.Font).init(allocator),
-        };
-    }
-
-    pub fn deinit(self: *Self) void {
-        var it = self.textures.iterator();
-        while (it.next()) |entry| {
-            rl.unloadTexture(entry.value_ptr.handle);
-            self.allocator.free(entry.key_ptr.*);
+const Path = @import("../math/path.zig").Path;
+const AssetCache = @import("asset_cache.zig").AssetCache;
+const Font = @import("../graphics/font.zig").Font;
+const Sound = @import("../assets/sound.zig").Sound;
+pub fn AssetManager(
+    comptime TextureAsset: type,
+    comptime FontAsset: type,
+    comptime PathAsset: type,
+    comptime SoundAsset: type,
+) type {
+    comptime {
+        // Check texture Asset has the required methods
+        if (!@hasDecl(TextureAsset, "filename")) {
+            @compileError("TextureAsset must have a 'pub fn filename(self: TextureAsset) []const u8' method");
         }
-        self.textures.deinit();
-
-        var font_it = self.fonts.iterator();
-        while (font_it.next()) |entry| {
-            rl.unloadFont(entry.value_ptr.*);
-            self.allocator.free(entry.key_ptr.*);
-        }
-        self.fonts.deinit();
-    }
-
-    pub fn loadTexture(self: *Self, filename: []const u8, transparent_color: ?rl.Color) !Texture {
-        if (self.textures.get(filename)) |texture| {
-            return texture;
+        if (!@hasDecl(TextureAsset, "transparentColor")) {
+            @compileError("TextureAsset must have a 'pub fn transparentColor(self: TextureAsset) ?rl.Color' method");
         }
 
-        const full_path = try std.fs.path.join(self.allocator, &.{ self.asset_root, filename });
-        defer self.allocator.free(full_path);
+        // Check Font Asset has the required methods
+        if (!@hasDecl(FontAsset, "filename")) {
+            @compileError("FontAsset must have a 'pub fn filename(self: FontAsset) []const u8' method");
+        }
+        if (!@hasDecl(FontAsset, "size")) {
+            @compileError("FontAsset must have a 'pub fn size(self: FontAsset) ?i32' method");
+        }
 
-        const texture = try Texture.loadFromFile(self.allocator, full_path, transparent_color);
+        // Check PathAsset has required methods
+        if (!@hasDecl(PathAsset, "filename")) {
+            @compileError("PathAsset must have a 'pub fn filename(self: PathAsset) []const u8' method");
+        }
 
-        const key = try self.allocator.dupe(u8, filename);
-        errdefer self.allocator.free(key);
-
-        try self.textures.put(key, texture);
-
-        return texture;
-    }
-
-    pub fn getTexture(self: *Self, filename: []const u8) ?Texture {
-        return self.textures.get(filename);
-    }
-
-    pub fn unloadTexture(self: *Self, filename: []const u8) void {
-        if (self.textures.fetchRemove(filename)) |entry| {
-            rl.unloadTexture(entry.value.handle);
-            self.allocator.free(entry.key);
+        // Check SoundAsset has required methods
+        if (!@hasDecl(SoundAsset, "filename")) {
+            @compileError("SoundAsset must have a 'pub fn filename(self: PathAsset) []const u8' method");
         }
     }
 
-    pub fn loadFont(self: *Self, filename: []const u8) !rl.Font {
-        if (self.fonts.get(filename)) |font| {
-            return font;
+    return struct {
+        allocator: std.mem.Allocator,
+        asset_root: []const u8,
+        textures: TextureCache,
+        fonts: FontCache,
+        paths: PathCache,
+        sounds: SoundCache,
+
+        const Self = @This();
+
+        const TextureCache = AssetCache(TextureAsset, Texture, ?rl.Color, Texture.load, Texture.unload);
+        const FontCache = AssetCache(FontAsset, Font, ?i32, Font.load, Font.unload);
+        const PathCache = AssetCache(PathAsset, Path, void, Path.load, Path.unload);
+        const SoundCache = AssetCache(SoundAsset, Sound, void, Sound.load, Sound.unload);
+
+        pub fn init(allocator: std.mem.Allocator, asset_root: []const u8) !Self {
+            rl.initAudioDevice();
+            return .{
+                .allocator = allocator,
+                .asset_root = asset_root,
+                .textures = TextureCache.init(allocator),
+                .fonts = FontCache.init(allocator),
+                .paths = PathCache.init(allocator),
+                .sounds = SoundCache.init(allocator),
+            };
         }
 
-        const full_path = try std.fs.path.join(self.allocator, &.{ self.asset_root, filename });
-        defer self.allocator.free(full_path);
-
-        // Create null-terminated string for C
-        const path_z = try self.allocator.dupeZ(u8, full_path);
-        defer self.allocator.free(path_z);
-
-        const font = try rl.loadFont(path_z);
-
-        const key = try self.allocator.dupe(u8, filename);
-        errdefer self.allocator.free(key);
-
-        try self.fonts.put(key, font);
-
-        return font;
-    }
-
-    pub fn getFont(self: *Self, filename: []const u8) ?rl.Font {
-        return self.fonts.get(filename);
-    }
-
-    pub fn unloadFont(self: *Self, filename: []const u8) void {
-        if (self.fonts.fetchRemove(filename)) |entry| {
-            rl.unloadFont(entry.value);
-            self.allocator.free(entry.key);
+        // Textures
+        pub fn loadTexture(self: *Self, asset: TextureAsset) !Texture {
+            return self.textures.load(
+                self.allocator,
+                self.asset_root,
+                asset,
+                asset.filename(),
+                asset.transparentColor(),
+            );
         }
-    }
-};
+
+        pub fn getTexture(self: *Self, asset: TextureAsset) ?Texture {
+            return self.textures.get(asset);
+        }
+
+        pub fn unloadTexture(self: *Self, asset: TextureAsset) void {
+            self.textures.unload(asset);
+        }
+
+        // Fonts
+        pub fn loadFont(self: *Self, asset: FontAsset) !Font {
+            return self.fonts.load(
+                self.allocator,
+                self.asset_root,
+                asset,
+                asset.filename(),
+                asset.size(),
+            );
+        }
+
+        pub fn getFont(self: *Self, asset: FontAsset) ?Font {
+            return self.fonts.get(asset);
+        }
+
+        pub fn unloadFont(self: *Self, asset: FontAsset) void {
+            self.fonts.unload(asset);
+        }
+
+        // Paths
+        pub fn loadPaths(self: *Self, asset: PathAsset) !Path {
+            return self.paths.load(
+                self.allocator,
+                self.asset_root,
+                asset,
+                asset.filename(),
+                {},
+            );
+        }
+
+        pub fn getPath(self: *Self, asset: PathAsset) ?Path {
+            return self.paths.get(asset);
+        }
+
+        pub fn unloadPath(self: *Self, asset: PathAsset) void {
+            self.paths.unload(asset);
+        }
+
+        // Sounds
+        pub fn loadSound(self: *Self, asset: SoundAsset) !Sound {
+            return self.sounds.load(
+                self.allocator,
+                self.asset_root,
+                asset,
+                asset.filename(),
+                {},
+            );
+        }
+
+        pub fn getSound(self: *Self, asset: SoundAsset) ?Sound {
+            return self.sounds.get(asset);
+        }
+
+        pub fn unloadSound(self: *Self, asset: SoundAsset) void {
+            self.sounds.unload(asset);
+        }
+
+        pub fn playSound(self: *Self, asset: SoundAsset) void {
+            if (self.getSound(asset)) |sound| {
+                rl.playSound(sound.handle);
+            }
+        }
+
+        pub fn deinit(self: *Self) void {
+            self.textures.deinit();
+            self.fonts.deinit();
+            self.paths.deinit();
+            self.sounds.deinit();
+        }
+    };
+}

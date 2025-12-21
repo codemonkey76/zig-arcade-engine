@@ -12,13 +12,26 @@ pub fn GameVTable(comptime CtxType: type) type {
 }
 
 pub fn run(
-    comptime SoundId: type,
+    comptime TextureAsset: type,
+    comptime FontAsset: type,
+    comptime PathAsset: type,
+    comptime SoundAsset: type,
     allocator: std.mem.Allocator,
     game_ptr: *anyopaque,
-    game: GameVTable(ContextFn(SoundId)),
+    game: GameVTable(ContextFn(
+        TextureAsset,
+        FontAsset,
+        PathAsset,
+        SoundAsset,
+    )),
     cfg: Config,
 ) !void {
-    const Context = ContextFn(SoundId);
+    const Context = ContextFn(
+        TextureAsset,
+        FontAsset,
+        PathAsset,
+        SoundAsset,
+    );
     var ctx = try Context.init(allocator, cfg);
     defer ctx.deinit();
 

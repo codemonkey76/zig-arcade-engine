@@ -3,34 +3,37 @@ const rl = @import("raylib");
 
 const Config = @import("config.zig").Config;
 const Input = @import("../input/input.zig").Input;
-const AssetManager = @import("../assets/assets.zig").AssetManager;
-const AudioManagerFn = @import("../audio/audio.zig").AudioManager;
+const AssetManagerFn = @import("../assets/assets.zig").AssetManager;
 const Window = @import("window.zig").Window;
 const Viewport = @import("../graphics/viewport.zig").Viewport;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
 
-pub fn Context(comptime SoundId: type) type {
-    const AudioManager = AudioManagerFn(SoundId);
-    
+pub fn Context(
+    comptime TextureAsset: type,
+    comptime FontAsset: type,
+    comptime PathAsset: type,
+    comptime SoundAsset: type,
+) type {
+    const AssetManager = AssetManagerFn(TextureAsset, FontAsset, PathAsset, SoundAsset);
+
     return struct {
         allocator: std.mem.Allocator,
 
         input: Input,
         renderer: Renderer,
         assets: AssetManager,
-        audio: AudioManager,
         window: Window,
         viewport: Viewport,
 
         const Self = @This();
 
         pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
+            rl.setTraceLogLevel(cfg.log_level);
             var self: Self = .{
                 .allocator = allocator,
                 .input = Input.init(),
                 .renderer = undefined,
                 .assets = try AssetManager.init(allocator, cfg.asset_root),
-                .audio = try AudioManager.init(allocator, cfg.asset_root),
                 .window = Window.init(cfg),
                 .viewport = try Viewport.init(
                     cfg.virtual_width,
@@ -48,7 +51,6 @@ pub fn Context(comptime SoundId: type) type {
         pub fn deinit(self: *Self) void {
             self.viewport.deinit();
             self.assets.deinit();
-            self.audio.deinit();
             self.window.deinit();
         }
 

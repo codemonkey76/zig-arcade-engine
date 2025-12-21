@@ -27,7 +27,6 @@ pub const Anchor = graphics.Anchor;
 
 pub const input = @import("input/mod.zig");
 pub const assets = @import("assets/mod.zig");
-pub const audio = @import("audio/mod.zig");
 
 test {
     std.testing.refAllDecls(@This());

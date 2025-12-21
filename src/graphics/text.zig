@@ -1,6 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
-const types = @import("../root.zig").types;
+const types = @import("../mod.zig").types;
 const Viewport = @import("viewport.zig").Viewport;
 
 pub const TextRenderer = struct {
