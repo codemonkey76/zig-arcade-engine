@@ -16,7 +16,7 @@ pub const Path = struct {
             .allocator = allocator,
         };
     }
-    pub fn unload(self: Self) void {
+    pub fn unload(self: *Self) void {
         self.allocator.free(self.name);
         self.allocator.free(self.anchors);
     }
