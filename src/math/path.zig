@@ -3,7 +3,8 @@ const lib = @import("arcade_lib");
 
 pub const Path = struct {
     name: []const u8,
-    anchors: []lib.AnchorPoint,
+    anchors: []const lib.AnchorPoint,
+    allocator: std.mem.Allocator,
 
     const Self = @This();
 
@@ -12,9 +13,11 @@ pub const Path = struct {
         return .{
             .name = path.name,
             .anchors = path.anchors,
+            .allocator = allocator,
         };
     }
     pub fn unload(self: Self) void {
-        _ = self;
+        self.allocator.free(self.name);
+        self.allocator.free(self.anchors);
     }
 };

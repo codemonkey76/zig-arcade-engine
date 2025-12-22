@@ -39,12 +39,13 @@ pub const TextRenderer = struct {
         const c_text: [:0]const u8 = buf[0..text.len :0];
 
         if (self.font) |font| {
+            const spacing: f32 = @as(f32, @floatFromInt(scaled_size)) / 10.0;
             rl.drawTextEx(
                 font,
                 c_text,
                 .{ .x = screen_pos.x, .y = screen_pos.y },
                 @floatFromInt(scaled_size),
-                1.0, // spacing
+                spacing,
                 color,
             );
         } else {
@@ -97,9 +98,10 @@ pub const TextRenderer = struct {
 
         const c_text: [:0]const u8 = buf[0..text.len :0];
 
-        const width_px = if (self.font) |font|
-            rl.measureTextEx(font, c_text, @floatFromInt(scaled_size), 1.0).x
-        else
+        const width_px = if (self.font) |font| blk: {
+            const spacing: f32 = @as(f32, @floatFromInt(scaled_size)) / 10.0;
+            break :blk rl.measureTextEx(font, c_text, @floatFromInt(scaled_size), spacing).x;
+        } else
             @as(f32, @floatFromInt(rl.measureText(c_text, scaled_size)));
 
         const vw = @as(f32, @floatFromInt(self.viewport.virtual_width));

@@ -25,7 +25,15 @@ pub const Font = struct {
         const path_z = try allocator.dupeZ(u8, path);
         defer allocator.free(path_z);
 
-        const font = try rl.loadFontEx(path_z, size, null);
+        // Load extended Latin characters (0-255) to support symbols like ©, ®, etc.
+        const codepoints = try allocator.alloc(i32, 256);
+        defer allocator.free(codepoints);
+        
+        for (codepoints, 0..) |*cp, i| {
+            cp.* = @intCast(i);
+        }
+
+        const font = try rl.loadFontEx(path_z, size, codepoints);
         return .{ .handle = font };
     }
 

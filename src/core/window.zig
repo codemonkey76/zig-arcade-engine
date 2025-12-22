@@ -33,5 +33,10 @@ pub const Window = struct {
 
     pub fn update(self: *Self) void {
         if (rl.windowShouldClose()) self.should_close = true;
+        
+        // Toggle fullscreen with F11
+        if (rl.isKeyPressed(rl.KeyboardKey.f11)) {
+            rl.toggleBorderlessWindowed();
+        }
     }
 };
