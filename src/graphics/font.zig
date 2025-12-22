@@ -28,7 +28,7 @@ pub const Font = struct {
         // Load extended Latin characters (0-255) to support symbols like ©, ®, etc.
         const codepoints = try allocator.alloc(i32, 256);
         defer allocator.free(codepoints);
-        
+
         for (codepoints, 0..) |*cp, i| {
             cp.* = @intCast(i);
         }
@@ -37,7 +37,7 @@ pub const Font = struct {
         return .{ .handle = font };
     }
 
-    pub fn unload(self: Self) void {
+    pub fn unload(self: *Self) void {
         rl.unloadFont(self.handle);
     }
 };

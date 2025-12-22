@@ -14,7 +14,7 @@ pub const Sound = struct {
         return .{ .handle = font };
     }
 
-    pub fn unload(self: Self) void {
+    pub fn unload(self: *Self) void {
         rl.unloadSound(self.handle);
     }
 };

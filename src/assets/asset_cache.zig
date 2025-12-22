@@ -6,7 +6,7 @@ pub fn AssetCache(
     comptime T: type,
     comptime ExtraParam: type,
     comptime loadFn: fn (std.mem.Allocator, []const u8, ExtraParam) anyerror!T,
-    comptime unloadFn: ?fn (T) void,
+    comptime unloadFn: ?fn (*T) void,
 ) type {
     return struct {
         cache: std.AutoHashMap(KeyType, T),
@@ -20,10 +20,10 @@ pub fn AssetCache(
         }
 
         pub fn deinit(self: *Self) void {
-            var it = self.cache.iterator();
-            while (it.next()) |entry| {
+            var it = self.cache.valueIterator();
+            while (it.next()) |value_ptr| {
                 if (unloadFn) |unloadFunc| {
-                    unloadFunc(entry.value_ptr.*);
+                    unloadFunc(value_ptr);
                 }
             }
 
@@ -56,9 +56,10 @@ pub fn AssetCache(
         }
 
         pub fn unload(self: *Self, key: KeyType) void {
-            if (self.cache.fetchRemove(key)) |entry| {
+            if (self.cache.fetchRemove(key)) |kv| {
                 if (unloadFn) |unloadFunc| {
-                    unloadFunc(entry.value);
+                    var item = kv.value;
+                    unloadFunc(&item);
                 }
             }
         }

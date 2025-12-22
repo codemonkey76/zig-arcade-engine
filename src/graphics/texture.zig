@@ -54,7 +54,7 @@ pub const Texture = struct {
         return .{ .handle = texture };
     }
 
-    pub fn unload(self: Self) void {
+    pub fn unload(self: *Self) void {
         rl.unloadTexture(self.handle);
     }
 };
