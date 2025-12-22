@@ -1,10 +1,13 @@
 const std = @import("std");
 const rl = @import("raylib");
+const arcade_lib = @import("arcade_lib");
+const PathDefinition = arcade_lib.PathDefinition;
 const Texture = @import("../graphics/texture.zig").Texture;
 const Path = @import("../math/path.zig").Path;
 const AssetCache = @import("asset_cache.zig").AssetCache;
 const Font = @import("../graphics/font.zig").Font;
 const Sound = @import("../assets/sound.zig").Sound;
+
 pub fn AssetManager(
     comptime TextureAsset: type,
     comptime FontAsset: type,
