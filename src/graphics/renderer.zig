@@ -170,7 +170,7 @@ pub const Renderer = struct {
     /// Draw a flipped sprite at normalized coordinates (0-1) with center anchor
     pub fn drawFlippedSprite(
         self: Self,
-        flipped: sprite_manager.FlippedSprite,
+        flipped: anytype,
         normalized_pos: types.Vec2,
     ) void {
         self.drawFlippedSpriteAnchored(flipped, normalized_pos, Anchor.center);
@@ -179,7 +179,7 @@ pub const Renderer = struct {
     /// Draw a flipped sprite at normalized coordinates (0-1) with custom anchor
     pub fn drawFlippedSpriteAnchored(
         self: Self,
-        flipped: sprite_manager.FlippedSprite,
+        flipped: anytype,
         normalized_pos: types.Vec2,
         anchor: Anchor,
     ) void {
