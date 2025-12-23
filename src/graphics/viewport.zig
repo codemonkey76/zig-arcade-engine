@@ -134,8 +134,8 @@ pub const Viewport = struct {
         const vh = @as(f32, @floatFromInt(self.virtual_height)) * @as(f32, @floatFromInt(self.ssaa_scale));
 
         return .{
-            .x = normalized.x * vw,
-            .y = normalized.y * vh,
+            .x = @round(normalized.x * vw),
+            .y = @round(normalized.y * vh),
         };
     }
 
