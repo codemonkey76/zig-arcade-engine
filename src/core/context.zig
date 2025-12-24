@@ -36,7 +36,7 @@ pub fn Context(
 
         pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
             rl.setTraceLogLevel(cfg.log_level);
-            var logger = try Logger.init(allocator, cfg.logfile, cfg.log_level);
+            var logger = try Logger.init(allocator, cfg.log_file, cfg.log_level);
             errdefer logger.deinit();
 
             var self: Self = .{
