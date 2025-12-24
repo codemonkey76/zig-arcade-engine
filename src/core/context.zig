@@ -7,6 +7,7 @@ const AssetManagerFn = @import("../assets/assets.zig").AssetManager;
 const Window = @import("window.zig").Window;
 const Viewport = @import("../graphics/viewport.zig").Viewport;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
+const Logger = @import("logger.zig").Logger;
 
 pub fn Context(
     comptime TextureAsset: type,
@@ -14,7 +15,12 @@ pub fn Context(
     comptime PathAsset: type,
     comptime SoundAsset: type,
 ) type {
-    const AssetManager = AssetManagerFn(TextureAsset, FontAsset, PathAsset, SoundAsset);
+    const AssetManager = AssetManagerFn(
+        TextureAsset,
+        FontAsset,
+        PathAsset,
+        SoundAsset,
+    );
 
     return struct {
         allocator: std.mem.Allocator,
@@ -24,11 +30,15 @@ pub fn Context(
         assets: AssetManager,
         window: Window,
         viewport: Viewport,
+        logger: Logger,
 
         const Self = @This();
 
         pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
             rl.setTraceLogLevel(cfg.log_level);
+            var logger = try Logger.init(allocator, "zalaga.log", cfg.log_level);
+            errdefer logger.deinit();
+
             var self: Self = .{
                 .allocator = allocator,
                 .input = Input.init(),
@@ -40,6 +50,7 @@ pub fn Context(
                     cfg.virtual_height,
                     cfg.ssaa_scale,
                 ),
+                .logger = logger,
             };
 
             self.viewport.updateDestRect(cfg.width, cfg.height);
@@ -52,6 +63,7 @@ pub fn Context(
             self.viewport.deinit();
             self.assets.deinit();
             self.window.deinit();
+            self.logger.deinit();
         }
 
         pub fn fixPointers(self: *Self) void {
