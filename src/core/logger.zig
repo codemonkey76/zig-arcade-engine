@@ -49,28 +49,28 @@ pub const Logger = struct {
         }
     }
 
-    pub fn logError(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-        try self.log(.err, "ERROR: " ++ fmt, args);
+    pub fn logError(self: *Self, comptime fmt: []const u8, args: anytype) void {
+        self.log(.err, "ERROR: " ++ fmt, args);
     }
 
-    pub fn logInfo(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-        try self.log(.info, "INFO: " ++ fmt, args);
+    pub fn logInfo(self: *Self, comptime fmt: []const u8, args: anytype) void {
+        self.log(.info, "INFO: " ++ fmt, args);
     }
 
-    pub fn logDebug(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-        try self.log(.debug, "DEBUG: " ++ fmt, args);
+    pub fn logDebug(self: *Self, comptime fmt: []const u8, args: anytype) void {
+        self.log(.debug, "DEBUG: " ++ fmt, args);
     }
 
-    pub fn logTrace(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-        try self.log(.trace, "TRACE: " ++ fmt, args);
+    pub fn logTrace(self: *Self, comptime fmt: []const u8, args: anytype) void {
+        self.log(.trace, "TRACE: " ++ fmt, args);
     }
 
-    pub fn logWarn(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-        try self.log(.warning, "WARN: " ++ fmt, args);
+    pub fn logWarn(self: *Self, comptime fmt: []const u8, args: anytype) void {
+        self.log(.warning, "WARN: " ++ fmt, args);
     }
 
-    pub fn logFatal(self: *Self, comptime fmt: []const u8, args: anytype) !void {
-        try self.log(.fatal, "FATAL: " ++ fmt, args);
+    pub fn logFatal(self: *Self, comptime fmt: []const u8, args: anytype) void {
+        self.log(.fatal, "FATAL: " ++ fmt, args);
     }
 
     pub fn setLevel(self: *Self, level: rl.TraceLogLevel) void {
