@@ -6,6 +6,7 @@ pub const Config = struct {
     height: u32 = 720,
     target_fps: u32 = 60,
     log_level: rl.TraceLogLevel = .info,
+    log_file: []const u8 = "engine.log",
 
     // Virtual resolution for game viewport
     virtual_width: u32 = 224,
