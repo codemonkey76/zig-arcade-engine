@@ -43,9 +43,15 @@ pub const Logger = struct {
 
         if (self.file) |file| {
             const timestamp = std.time.timestamp();
-            file.writer().print("[{d}] ", .{timestamp}) catch return;
-            file.writer.print(fmt, args) catch return;
-            file.writer.writeByte('\n') catch return;
+
+            // Use buffered writer
+            var buf: [4096]u8 = undefined;
+            buf = std.mem.zeroes(u8, 4096);
+            const writer = file.writer(&buf);
+
+            writer.print("[{d}] ", .{timestamp}) catch return;
+            writer.print(fmt, args) catch return;
+            writer.writeByte('\n') catch return;
         }
     }
 
