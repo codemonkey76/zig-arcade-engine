@@ -9,8 +9,8 @@
             .hash = "arcade_lib-0.0.0-1ZgfDtNdAADl4B4_dMWntIGiUNBKTIzqjUAxRyEtZKDi",
         },
         .raylib_zig = .{
-            .url = "git+https://github.com/codemonkey76/raylib-zig#8697c2bc6e14fa8b8d223067a6f72613e90139c3",
-            .hash = "raylib_zig-5.6.0-dev-KE8REAlOBQC8GU-qKI8mEkVfGMwgljRperK8Uo_1gxgG",
+            .url = "git+https://github.com/codemonkey76/raylib-zig#69e281c7f9536b6014ef4e181d00d8565029a0ee",
+            .hash = "raylib_zig-5.6.0-dev-KE8REONNBQDzcAW875XL8u0EoU1WJZKrHtQo0Fh_T1Wa",
         },
     },
     .paths = .{
