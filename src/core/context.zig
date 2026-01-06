@@ -9,6 +9,25 @@ const Viewport = @import("../graphics/viewport.zig").Viewport;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
 const Logger = @import("logger.zig").Logger;
 
+var global_logger: ?*Logger = null;
+
+// fn raylibLogCallback(log_level: c_int, text: [*c]const u8, _: [*c]std.builtin.VaList) callconv(.c) void {
+//     if (global_logger) |logger| {
+//         const message = std.mem.span(text);
+//
+//         const level: rl.TraceLogLevel = @enumFromInt(log_level);
+//         switch (level) {
+//             rl.TraceLogLevel.trace => logger.trace("[RAYLIB] {s}", .{message}),
+//             rl.TraceLogLevel.debug => logger.debug("[RAYLIB] {s}", .{message}),
+//             rl.TraceLogLevel.info => logger.info("[RAYLIB] {s}", .{message}),
+//             rl.TraceLogLevel.warning => logger.warn("[RAYLIB] {s}", .{message}),
+//             rl.TraceLogLevel.err => logger.err("[RAYLIB] {s}", .{message}),
+//             rl.TraceLogLevel.fatal => logger.fatal("[RAYLIB] {s}", .{message}),
+//             else => {},
+//         }
+//     }
+// }
+
 pub fn Context(
     comptime TextureAsset: type,
     comptime FontAsset: type,
@@ -35,9 +54,14 @@ pub fn Context(
         const Self = @This();
 
         pub fn init(allocator: std.mem.Allocator, cfg: Config) !Self {
-            rl.setTraceLogLevel(cfg.log_level);
+            rl.setTraceLogLevel(.none);
             var logger = try Logger.init(allocator, cfg.log_file, cfg.log_level);
             errdefer logger.deinit();
+
+            logger.info("[Engine] Initializing", .{});
+
+            global_logger = &logger;
+            // rl.setTraceLogCallback(@ptrCast(&raylibLogCallback));
 
             var self: Self = .{
                 .allocator = allocator,
@@ -60,9 +84,15 @@ pub fn Context(
         }
 
         pub fn deinit(self: *Self) void {
+            // Disconnect logging callback FIRST - prevents any async callbacks during cleanup
+            // rl.setTraceLogCallback(null);
+
+            // Now cleanup (raylib will log to console, but that's acceptable for shutdown messages)
             self.viewport.deinit();
             self.assets.deinit();
             self.window.deinit();
+
+            // Close log file
             self.logger.deinit();
         }
 

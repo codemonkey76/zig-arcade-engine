@@ -2,11 +2,11 @@
 const std = @import("std");
 const rl = @import("raylib");
 
-// Re-export core types
 pub const Config = @import("core/config.zig").Config;
 pub const Context = @import("core/context.zig").Context;
 pub const GameVTable = @import("core/run.zig").GameVTable;
 pub const run = @import("core/run.zig").run;
+pub const collision = @import("collision/collision.zig");
 
 // Re-export common types from raylib
 pub const types = struct {

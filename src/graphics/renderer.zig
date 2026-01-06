@@ -253,4 +253,47 @@ pub const Renderer = struct {
 
         rl.drawRectangleRec(screen_rect, color);
     }
+
+    /// Draw collision bounds for debugging
+    pub fn drawCollisionBounds(
+        self: Self,
+        position: types.Vec2,
+        bounds: @import("../collision/collision.zig").CollisionBounds,
+        color: types.Color,
+    ) void {
+        switch (bounds) {
+            .none => {},
+            .circle => |circle| {
+                self.drawCircle(position, circle.radius * @as(f32, @floatFromInt(self.viewport.virtual_width)), 1.0, color);
+            },
+            .rectangle => |rect| {
+                const half_w = rect.width * 0.5;
+                const half_h = rect.height * 0.5;
+
+                const bounds_rect = types.Rect{
+                    .x = position.x - half_w,
+                    .y = position.y - half_h,
+                    .width = rect.width,
+                    .height = rect.height,
+                };
+
+                self.drawRectangleLines(bounds_rect, 1.0, color);
+            },
+            .polygon => |poly| {
+                // Draw polygon edges
+                for (poly.vertices, 0..) |_, i| {
+                    const next_i = (i + 1) % poly.vertices.len;
+                    const v1 = types.Vec2{
+                        .x = position.x + poly.vertices[i].x,
+                        .y = position.y + poly.vertices[i].y,
+                    };
+                    const v2 = types.Vec2{
+                        .x = position.x + poly.vertices[next_i].x,
+                        .y = position.y + poly.vertices[next_i].y,
+                    };
+                    self.drawLine(v1, v2, 1.0, color);
+                }
+            },
+        }
+    }
 };

@@ -28,6 +28,7 @@ pub const Logger = struct {
     pub fn deinit(self: *Self) void {
         if (self.file) |file| {
             file.close();
+            self.file = null;
         }
     }
 
@@ -41,41 +42,66 @@ pub const Logger = struct {
         self.mutex.lock();
         defer self.mutex.unlock();
 
+        const timestamp = std.time.timestamp();
+        const level_str = switch (level) {
+            .all => "ALL",
+            .trace => "TRACE",
+            .debug => "DEBUG",
+            .info => "INFO",
+            .warning => "WARN",
+            .err => "ERROR",
+            .fatal => "FATAL",
+            .none => "NONE,",
+        };
+
         if (self.file) |file| {
-            const timestamp = std.time.timestamp();
+            // Format timestamp
+            const epoch_seconds = std.time.epoch.EpochSeconds{ .secs = @intCast(timestamp) };
+            const epoch_day = epoch_seconds.getEpochDay();
+            const year_day = epoch_day.calculateYearDay();
+            const month_day = year_day.calculateMonthDay();
+            const day_seconds = epoch_seconds.getDaySeconds();
 
-            // Use buffered writer
-            var buf: [4096]u8 = undefined;
-            buf = std.mem.zeroes(u8, 4096);
-            const writer = file.writer(&buf);
+            var msg_buf: [3096]u8 = undefined;
+            const user_msg = std.fmt.bufPrint(&msg_buf, fmt, args) catch "ERROR FORMATTING";
 
-            writer.print("[{d}] ", .{timestamp}) catch return;
-            writer.print(fmt, args) catch return;
-            writer.writeByte('\n') catch return;
+            var log_buf: [4096]u8 = undefined;
+            const message = std.fmt.bufPrint(&log_buf, "[{d:0>4}-{d:0>2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}] {s}: {s}", .{
+                year_day.year,
+                month_day.month.numeric(),
+                month_day.day_index + 1,
+                day_seconds.getHoursIntoDay(),
+                day_seconds.getMinutesIntoHour(),
+                day_seconds.getSecondsIntoMinute(),
+                level_str,
+                user_msg,
+            }) catch return;
+
+            file.writeAll(message) catch return;
         }
     }
 
-    pub fn logError(self: *Self, comptime fmt: []const u8, args: anytype) void {
+    pub fn err(self: *Self, comptime fmt: []const u8, args: anytype) void {
         self.log(.err, "ERROR: " ++ fmt, args);
     }
 
-    pub fn logInfo(self: *Self, comptime fmt: []const u8, args: anytype) void {
+    pub fn info(self: *Self, comptime fmt: []const u8, args: anytype) void {
         self.log(.info, "INFO: " ++ fmt, args);
     }
 
-    pub fn logDebug(self: *Self, comptime fmt: []const u8, args: anytype) void {
+    pub fn debug(self: *Self, comptime fmt: []const u8, args: anytype) void {
         self.log(.debug, "DEBUG: " ++ fmt, args);
     }
 
-    pub fn logTrace(self: *Self, comptime fmt: []const u8, args: anytype) void {
+    pub fn trace(self: *Self, comptime fmt: []const u8, args: anytype) void {
         self.log(.trace, "TRACE: " ++ fmt, args);
     }
 
-    pub fn logWarn(self: *Self, comptime fmt: []const u8, args: anytype) void {
+    pub fn warn(self: *Self, comptime fmt: []const u8, args: anytype) void {
         self.log(.warning, "WARN: " ++ fmt, args);
     }
 
-    pub fn logFatal(self: *Self, comptime fmt: []const u8, args: anytype) void {
+    pub fn fatal(self: *Self, comptime fmt: []const u8, args: anytype) void {
         self.log(.fatal, "FATAL: " ++ fmt, args);
     }
 
