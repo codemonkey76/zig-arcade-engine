@@ -108,7 +108,7 @@ pub fn AssetManager(
         }
 
         // Paths
-        pub fn loadPaths(self: *Self, asset: PathAsset) !Path {
+        pub fn loadPath(self: *Self, asset: PathAsset) !Path {
             return self.paths.load(
                 self.allocator,
                 self.asset_root,
