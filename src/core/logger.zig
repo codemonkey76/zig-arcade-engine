@@ -66,7 +66,7 @@ pub const Logger = struct {
             const user_msg = std.fmt.bufPrint(&msg_buf, fmt, args) catch "ERROR FORMATTING";
 
             var log_buf: [4096]u8 = undefined;
-            const message = std.fmt.bufPrint(&log_buf, "[{d:0>4}-{d:0>2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}] {s}: {s}", .{
+            const message = std.fmt.bufPrint(&log_buf, "[{d:0>4}-{d:0>2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}] {s}: {s}\n", .{
                 year_day.year,
                 month_day.month.numeric(),
                 month_day.day_index + 1,
