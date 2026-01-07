@@ -51,7 +51,7 @@ pub const Logger = struct {
             .warning => "WARN",
             .err => "ERROR",
             .fatal => "FATAL",
-            .none => "NONE,",
+            .none => "NONE",
         };
 
         if (self.file) |file| {
@@ -82,27 +82,27 @@ pub const Logger = struct {
     }
 
     pub fn err(self: *Self, comptime fmt: []const u8, args: anytype) void {
-        self.log(.err, "ERROR: " ++ fmt, args);
+        self.log(.err, fmt, args);
     }
 
     pub fn info(self: *Self, comptime fmt: []const u8, args: anytype) void {
-        self.log(.info, "INFO: " ++ fmt, args);
+        self.log(.info, fmt, args);
     }
 
     pub fn debug(self: *Self, comptime fmt: []const u8, args: anytype) void {
-        self.log(.debug, "DEBUG: " ++ fmt, args);
+        self.log(.debug, fmt, args);
     }
 
     pub fn trace(self: *Self, comptime fmt: []const u8, args: anytype) void {
-        self.log(.trace, "TRACE: " ++ fmt, args);
+        self.log(.trace, fmt, args);
     }
 
     pub fn warn(self: *Self, comptime fmt: []const u8, args: anytype) void {
-        self.log(.warning, "WARN: " ++ fmt, args);
+        self.log(.warning, fmt, args);
     }
 
     pub fn fatal(self: *Self, comptime fmt: []const u8, args: anytype) void {
-        self.log(.fatal, "FATAL: " ++ fmt, args);
+        self.log(.fatal, fmt, args);
     }
 
     pub fn setLevel(self: *Self, level: rl.TraceLogLevel) void {
